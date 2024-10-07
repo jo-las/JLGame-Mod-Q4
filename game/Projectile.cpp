@@ -879,17 +879,12 @@ bool idProjectile::Collide( const trace_t &collision, const idVec3 &velocity, bo
 	// if the hit entity takes damage
 
 	if (canDamage && ent->IsType(idPlayer::GetClassType()) && ent != owner.GetEntity()) {
-		// Apply knockback to players
-		float knockbackStrength = 500.0f; // Adjust this value as needed
-		idVec3 knockbackDir = ent->GetPhysics()->GetOrigin() - this->GetPhysics()->GetOrigin(); // Direction from the projectile to the player
+		float knockbackStrength = 500.0f; 
+		idVec3 knockbackDir = ent->GetPhysics()->GetOrigin() - this->GetPhysics()->GetOrigin(); // Direction from the projectile to the target
 		knockbackDir.Normalize();
-
 		// Apply knockback impulse
 		ent->ApplyImpulse(this, collision.c.id, collision.endpos, knockbackDir * knockbackStrength);
-
-		common->DPrintf("Knockback applied to player at position: %s\n", ent->GetPhysics()->GetOrigin().ToString());
-
-		return true; // Skip damage to player
+		return true; 
 	}
 
 	if ( canDamage ) {

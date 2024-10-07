@@ -156,13 +156,14 @@ void rvWeaponRocketLauncher::Think ( void ) {
 	// Let the real weapon think first
 	rvWeapon::Think ( );
 
-	gameLocal.Printf("Thinking");
-	gameLocal.Printf("Ammo Available: %d, Max Ammo: %d\n", AmmoAvailable(), maxAmmo);
-	gameLocal.Printf("Current Time: %d, Last Regen Time: %d\n", gameLocal.time, lastAmmoRegenTime);
+	//Joosh's note: commented out the print statements used during testing/development
+	//gameLocal.Printf("Thinking");
+	//gameLocal.Printf("Ammo Available: %d, Max Ammo: %d\n", AmmoAvailable(), maxAmmo);
+	//gameLocal.Printf("Current Time: %d, Last Regen Time: %d\n", gameLocal.time, lastAmmoRegenTime);
 
 	// Regenerate ammo over time
 	if (gameLocal.time > lastAmmoRegenTime + ammoRegenTime && AmmoAvailable() < maxAmmo) {
-		gameLocal.Printf("Regenerating Ammo\n");
+		//gameLocal.Printf("Regenerating Ammo\n");
 		owner->inventory.ammo[ammoType] += regenAmount;  // Add ammo to reserve
 		if (owner->inventory.ammo[ammoType] > maxAmmo) {
 			owner->inventory.ammo[ammoType] = maxAmmo;  // Ensure it doesn't exceed max ammo
