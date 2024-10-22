@@ -42,6 +42,9 @@ protected:
 	float								guideSpeedFast;
 	float								guideRange;
 	float								guideAccelTime;
+	float                               regenAmount;
+	int									ammoRegenTime;
+	int									lastAmmoRegenTime;
 
 	rvStateThread						rocketThread;
 
@@ -95,6 +98,8 @@ void rvWeaponRocketLauncher::Spawn ( void ) {
 	float f;
 
 	idleEmpty = false;
+
+	lastAmmoRegenTime = gameLocal.time; //Store the last time launcher regenerated ammo
 	
 	spawnArgs.GetFloat ( "lockRange", "0", guideRange );
 
@@ -105,6 +110,11 @@ void rvWeaponRocketLauncher::Spawn ( void ) {
 	reloadRate = SEC2MS ( spawnArgs.GetFloat ( "reloadRate", ".8" ) );
 	
 	guideAccelTime = SEC2MS ( spawnArgs.GetFloat ( "lockAccelTime", ".25" ) );
+
+	//Load the parameters for ammo regeneration
+	spawnArgs.GetFloat("ammoRegenStep", "10", regenAmount);  
+	spawnArgs.GetInt("ammoRegenTime", "0.5", ammoRegenTime);  
+	ammoRegenTime = SEC2MS(ammoRegenTime);  //Convert to milliseconds
 	
 	// Start rocket thread
 	rocketThread.SetName ( viewModel->GetName ( ) );
@@ -145,6 +155,21 @@ void rvWeaponRocketLauncher::Think ( void ) {
 
 	// Let the real weapon think first
 	rvWeapon::Think ( );
+
+	//Joosh's note: commented out the print statements used during testing/development
+	//gameLocal.Printf("Thinking");
+	//gameLocal.Printf("Ammo Available: %d, Max Ammo: %d\n", AmmoAvailable(), maxAmmo);
+	//gameLocal.Printf("Current Time: %d, Last Regen Time: %d\n", gameLocal.time, lastAmmoRegenTime);
+
+	// Regenerate ammo over time
+	if (gameLocal.time > lastAmmoRegenTime + ammoRegenTime && AmmoAvailable() < maxAmmo) {
+		//gameLocal.Printf("Regenerating Ammo\n");
+		owner->inventory.ammo[ammoType] += regenAmount;  // Add ammo to reserve
+		if (owner->inventory.ammo[ammoType] > maxAmmo) {
+			owner->inventory.ammo[ammoType] = maxAmmo;  // Ensure it doesn't exceed max ammo
+		}
+		lastAmmoRegenTime = gameLocal.time;  // Update the last regen time
+	}
 
 	// IF no guide range is set then we dont have the mod yet	
 	if ( !guideRange ) {
@@ -446,7 +471,7 @@ stateResult_t rvWeaponRocketLauncher::State_Fire ( const stateParms_t& parms ) {
 	switch ( parms.stage ) {
 		case STAGE_INIT:
 			nextAttackTime = gameLocal.time + (fireRate * owner->PowerUpModifier ( PMOD_FIRERATE ));		
-			Attack ( false, 1, spread, 0, 1.0f );
+			Attack ( false, 5, 3, 0, 2.0f );
 			PlayAnim ( ANIMCHANNEL_LEGS, "fire", parms.blendFrames );	
 			return SRESULT_STAGE ( STAGE_WAIT );
 	

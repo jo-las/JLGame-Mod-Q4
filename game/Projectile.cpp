@@ -395,8 +395,16 @@ void idProjectile::Launch( const idVec3 &start, const idVec3 &dir, const idVec3 
 
 	impactedEntity = 0;
 
+
+
 	if ( health ) {
-		fl.takedamage = true;
+		// Check if the owner is a player
+		if (owner.GetEntity() && !owner.GetEntity()->IsType(idPlayer::GetClassType())) {
+			fl.takedamage = true; // Allow damage for non-player entities
+		}
+		else {
+			fl.takedamage = false; // Prevent damage if the owner is a player
+		}
 	}
 
 // RAVEN BEGIN
@@ -869,6 +877,16 @@ bool idProjectile::Collide( const trace_t &collision, const idVec3 &velocity, bo
 // RAVEN END
 
 	// if the hit entity takes damage
+
+	if (canDamage && ent->IsType(idPlayer::GetClassType()) && ent != owner.GetEntity()) {
+		float knockbackStrength = 500.0f; 
+		idVec3 knockbackDir = ent->GetPhysics()->GetOrigin() - this->GetPhysics()->GetOrigin(); // Direction from the projectile to the target
+		knockbackDir.Normalize();
+		// Apply knockback impulse
+		ent->ApplyImpulse(this, collision.c.id, collision.endpos, knockbackDir * knockbackStrength);
+		return true; 
+	}
+
 	if ( canDamage ) {
 
  		if ( damageDefName[0] != '\0' ) {
