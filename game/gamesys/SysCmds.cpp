@@ -663,6 +663,14 @@ void Cmd_Notarget_f( const idCmdArgs &args ) {
 	gameLocal.Printf( "%s", msg );
 }
 
+void Cmd_Locate_f(const idCmdArgs& args) {
+	idVec3 position;
+	idPlayer* player = gameLocal.GetLocalPlayer();
+	if (!player) return;
+	position = player->GetEyePosition();
+	common->Printf("Player is at (%f, %f, %f)\n", position.x, position.y, position.z);
+}
+
 /*
 ==================
 Cmd_Noclip_f
@@ -3232,6 +3240,7 @@ void idGameLocal::InitConsoleCommands( void ) {
 	cmdSystem->AddCommand( "buyMenu",				Cmd_ToggleBuyMenu_f,		CMD_FL_GAME,				"Toggle buy menu (if in a buy zone and the game type supports it)" );
 	cmdSystem->AddCommand( "buy",					Cmd_BuyItem_f,				CMD_FL_GAME,				"Buy an item (if in a buy zone and the game type supports it)" );
 // RITUAL END
+	cmdSystem->AddCommand("locate", Cmd_Locate_f, CMD_FL_GAME, "Print the prayer location to the screen");
 
 }
 
