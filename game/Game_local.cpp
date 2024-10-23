@@ -333,7 +333,7 @@ void idGameLocal::Clear( void ) {
 	playerConnectedAreas.i = -1;
 	playerConnectedAreas.h = -1;
 	gamestate = GAMESTATE_UNINITIALIZED;
-	skipCinematic = false;
+	skipCinematic = true; //set to true to skip the cinematic?
 	influenceActive = false;
 
 	localClientNum = 0;
@@ -2945,6 +2945,24 @@ void idGameLocal::SpawnPlayer( int clientNum ) {
 
 	PACIFIER_UPDATE;
 	mpGame.SpawnPlayer( clientNum );
+
+	//Enabling godmode and nolcip for the player
+	idPlayer* player = static_cast<idPlayer*>(ent);
+	if (player) {
+		player->godmode = true;
+		player->noclip = true;
+		//player->currency = 100;
+
+		gameLocal.Printf("Godmode and Noclip enabled");
+	}
+
+	idVec3 teleportPosition(1000, 500, 200);
+	player->SetOrigin(teleportPosition);
+
+	idAngles viewAngles(0, 90, -30);
+	player->SetViewAngles(viewAngles);
+
+	gameLocal.Printf("Player teleported to the position: %s\n", teleportPosition.ToString());
 }
 
 /*
@@ -6213,6 +6231,11 @@ idGameLocal::SkipCinematic
 =============
 */
 bool idGameLocal::SkipCinematic( void ) {
+	if (gameLocal.time == 0) {
+		skipCinematic = true;
+		return true; //skip the cinematic automatically
+	}
+	
 	if ( camera ) {
 		if ( camera->spawnArgs.GetBool( "disconnect" ) ) {
 			camera->spawnArgs.SetBool( "disconnect", false );
