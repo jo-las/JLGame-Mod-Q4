@@ -1102,6 +1102,8 @@ idPlayer::idPlayer() {
 	lastHitTime				= 0;
 	lastSavingThrowTime		= 0;
 
+	currency				= 0; //JL initializing currency
+
 	weapon					= NULL;
 
 	hud						= NULL;
@@ -1342,6 +1344,19 @@ idPlayer::idPlayer() {
 	teamAmmoRegenPending	= false;
 	teamDoubler			= NULL;		
 	teamDoublerPending		= false;
+}
+
+//JL currency functions
+void idPlayer::AddCurrency(int amount) {
+	currency += amount;
+}
+
+bool idPlayer::SpendCurrency(int amount) {
+	if (currency >= amount) {
+		currency -= amount;
+		return true;
+	}
+	return false;
 }
 
 /*
@@ -1806,6 +1821,8 @@ Prepare any resources used by the player.
 ==============
 */
 void idPlayer::Spawn( void ) {
+	gameLocal.Printf("Player Spawned: Health = %f, Armor = %f\n", health, inventory.maxHealth);
+
 	idStr		temp;
 	idBounds	bounds;
 
@@ -1815,6 +1832,11 @@ void idPlayer::Spawn( void ) {
 
 	// allow thinking during cinematics
 	cinematic = true;
+
+	//JL
+	gameLocal.Printf("Setting money to 1000");
+	health = 1000;
+	inventory.maxHealth = 5000;
 
 	if ( gameLocal.isMultiplayer ) {
 		// always start in spectating state waiting to be spawned in
@@ -4955,6 +4977,7 @@ void idPlayer::UpdatePowerUps( void ) {
 		}
 	}
 
+	/*
 	// Tick armor down if greater than max armor
 	if ( !gameLocal.isClient && gameLocal.time > nextArmorPulse ) {
 		if ( inventory.armor > inventory.maxarmor ) { 
@@ -4962,6 +4985,7 @@ void idPlayer::UpdatePowerUps( void ) {
 			inventory.armor--;
 		}		
 	}
+	*/
 		
 	// Assign the powerup skin as long as we are alive
  	if ( health > 0 ) {
@@ -9751,7 +9775,7 @@ void idPlayer::Killed( idEntity *inflictor, idEntity *attacker, int damage, cons
 			if( gameLocal.mpGame.GetGameState()->GetMPGameState() != WARMUP )
 			{
 				/// Remove the player's armor
-				inventory.armor = 0;
+				inventory.armor = 1000;
 
 				/// Preserve this player's weapons at the state of his death, to be restored on respawn
 				carryOverCurrentWeapon = currentWeapon;
@@ -11190,6 +11214,10 @@ idPlayer::Event_SetArmor
 */
 void idPlayer::Event_SetArmor( float newArmor ) {
 	inventory.armor = idMath::ClampInt( 0 , inventory.maxarmor, newArmor );
+
+	if (hud) {
+		UpdateHudStats(hud);
+	} 
 }
 
 /*

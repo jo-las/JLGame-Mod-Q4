@@ -2899,6 +2899,14 @@ void idGameLocal::InitScriptForMap( void ) {
 
 }
 
+void idGameLocal::OnEnemyDefeated(idPlayer* player) {
+	if (player) {
+		player->AddCurrency(10);
+		gameLocal.Printf("Currency added: Player has %d currency\n", player->currency);
+		
+	}
+}
+
 /*
 ===========
 idGameLocal::SpawnPlayer
@@ -2910,6 +2918,83 @@ void idGameLocal::SpawnPlayer( int clientNum ) {
 
 	idEntity	*ent;
 	idDict		args;
+
+	const int rows = 4;
+	const int columns = 6;
+	idEntity* grid[rows][columns];
+
+	float startX = 8962.6f;
+	float startY = -8585.8f;
+	float cellWidth = 160.0f;
+	float cellHeight = 160.0f;
+
+	args.Set("classname", "func_static"); 
+
+	//loop to create the array for placeholder spawning
+	for (int i = 0; i < rows; i++) {
+		for (int j = 0; j < columns; j++) {
+			gameLocal.Printf("Array block reached"); //test line to see if things were spawned
+			idVec3 spawnPos(startX + j * cellWidth, startY + i * cellHeight, 156);
+			args.SetVector("origin", spawnPos);
+			args.Set("classname", "monster_repair_bot");
+			idEntity* newEntity = nullptr;
+
+			gameLocal.SpawnEntityDef(args, &newEntity);
+
+			if (newEntity) {
+				gameLocal.Printf("Placeholder spawned @ row %d, column %d at position: %s\n", i, j, spawnPos.ToString());
+				grid[i][j] = newEntity;
+			}
+			else {
+				gameLocal.Warning("Failed to spawn placeholder @ (%d, %d)");
+			}
+		}
+	}
+
+	// Spawn enemies and marines with a delay
+	//static const float spawnDelay = 5.0f; // Delay in seconds
+	//static float lastSpawnTime = 0.0f;
+
+	//float currentTime = gameLocal.GetTime(); // Get the current game time
+	//if (currentTime - lastSpawnTime >= spawnDelay) {
+		//lastSpawnTime = currentTime; // Update last spawn time
+
+		// Spawn enemies at the phantom column
+		for (int i = 0; i < rows; i++) {
+			idVec3 enemySpawnPos(startX + (columns + 1) * cellWidth, startY + i * cellHeight, 196); // Adjust for the phantom column
+			args.SetVector("origin", enemySpawnPos);
+			args.Set("classname", "monster_failed_transfer"); // Change to the desired enemy class
+
+			idEntity* enemyEntity = nullptr;
+			gameLocal.SpawnEntityDef(args, &enemyEntity);
+
+			if (enemyEntity) {
+				gameLocal.Printf("Enemy spawned at row %d in phantom column at position: %s\n", i, enemySpawnPos.ToString());
+			}
+			else {
+				gameLocal.Warning("Failed to spawn enemy at row %d in phantom column", i);
+			}
+		}
+	//}
+
+	// Spawn marines for enemies to chase
+	for (int i = 0; i < rows; i++) {
+		idVec3 marineSpawnPos(startX - cellWidth, startY + (i * cellHeight), 196); // Spawn in the phantom column on the left
+		args.SetVector("origin", marineSpawnPos);
+		args.Set("classname", "char_marine_tech"); // Use the marine
+
+		idEntity* marineEntity = nullptr;
+		gameLocal.SpawnEntityDef(args, &marineEntity);
+
+		if (marineEntity) {
+			gameLocal.Printf("Marine spawned at row %d in phantom column at position: %s\n", i, marineSpawnPos.ToString());
+			// Optionally, set up additional properties for the marine here
+		}
+		else {
+			gameLocal.Warning("Failed to spawn marine at row %d", i);
+		}
+	}
+
 // RAVEN BEGIN
 // jnewquist: Tag scope and callees to track allocations using "new".
 	MEM_SCOPED_TAG(tag,MA_ENTITY);
@@ -2951,12 +3036,12 @@ void idGameLocal::SpawnPlayer( int clientNum ) {
 	if (player) {
 		player->godmode = true;
 		player->noclip = true;
-		//player->currency = 100;
+		player->currency = 100;
 
 		gameLocal.Printf("Godmode and Noclip enabled");
 	}
 
-	idVec3 teleportPosition(1000, 500, 200);
+	idVec3 teleportPosition(9299, -8909, 483); //spawning the player
 	player->SetOrigin(teleportPosition);
 
 	idAngles viewAngles(0, 90, -30);
@@ -6233,9 +6318,9 @@ idGameLocal::SkipCinematic
 bool idGameLocal::SkipCinematic( void ) {
 	if (gameLocal.time == 0) {
 		skipCinematic = true;
-		return true; //skip the cinematic automatically
+		return true; 
 	}
-	
+
 	if ( camera ) {
 		if ( camera->spawnArgs.GetBool( "disconnect" ) ) {
 			camera->spawnArgs.SetBool( "disconnect", false );

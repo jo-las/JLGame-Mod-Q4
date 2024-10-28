@@ -80,7 +80,7 @@ idAI::idAI ( void ) {
 	headFocusRate			= 0.0f;
 	eyeFocusRate			= 0.0f;
 	focusAlignTime			= 0;
-	focusRange				= 0.0f;
+	focusRange				= 10.0f;
 	focusType				= AIFOCUS_NONE;
 
 	memset ( &combat.fl, 0, sizeof(combat.fl) );
@@ -1972,6 +1972,10 @@ void idAI::UpdateEnemyPosition ( bool forceUpdate ) {
 		return;
 	}
 
+	if (enemy.ent->IsType(idPlayer::GetClassType())) {
+		return;
+	}
+
 	idActor*  enemyActor = dynamic_cast<idActor*>(enemy.ent.GetEntity());
 	idEntity* enemyEnt   = static_cast<idEntity*>(enemy.ent.GetEntity());
 
@@ -2119,6 +2123,11 @@ void idAI::UpdateEnemyVisibility ( void ) {
 
 	// No enemy so nothing to see
 	if ( !enemy.ent ) {
+		return;
+	}
+
+	// Ignore player JL
+	if (enemy.ent->IsType(idPlayer::GetClassType())) {
 		return;
 	}
 

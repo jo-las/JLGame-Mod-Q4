@@ -30,6 +30,8 @@ protected:
 	int					minShots;
 	int					shots;
 
+	float               cost;
+
 private:
 
 	rvAIAction			actionBlasterAttack;
@@ -68,6 +70,8 @@ void rvMonsterTurret::Spawn ( void ) {
 
 	InitSpawnArgsVariables();
 	shots		= 0;
+
+	cost = spawnArgs.GetFloat("cost", "100");
 }
 
 /*

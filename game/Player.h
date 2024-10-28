@@ -282,6 +282,12 @@ public:
 
 	friend class idThread;
 
+	//JL adding currency parameter and functions
+	int                     currency;
+	void					AddCurrency(int amount);
+	bool					SpendCurrency(int amount);
+
+
 	usercmd_t				usercmd;
 
 	class idPlayerView		playerView;			// handles damage kicks and effects
